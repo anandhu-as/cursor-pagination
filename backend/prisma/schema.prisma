@@ -17,5 +17,7 @@ model Product {
 
   // This composite index covers filtering by category, ordering by date, and tiebreaking by id.
   @@index([category, createdAt(sort: Desc), id(sort: Desc)])
+  // This composite index covers ordering by date and tiebreaking by id (when category filter is not used).
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
   @@map("products")
 }

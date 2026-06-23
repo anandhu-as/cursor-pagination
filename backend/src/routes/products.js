@@ -15,15 +15,39 @@ router.get("/", async (req, res) => {
     }
 
     if (cursor) {
-      // Decode the cursor token (Base64 -> JSON String -> Object)
-      const decoded = Buffer.from(cursor, "base64").toString("utf8");
-      const { createdAt, id } = JSON.parse(decoded);
+      try {
+        // Decode the cursor token (Base64 -> JSON String -> Object)
+        const decoded = Buffer.from(cursor, "base64").toString("utf8");
+        const parsed = JSON.parse(decoded);
 
-      // Filter products older than our cursor position
-      where.OR = [
-        { createdAt: { lt: new Date(createdAt) } },
-        { createdAt: new Date(createdAt), id: { lt: parseInt(id) } },
-      ];
+        if (!parsed || typeof parsed !== "object") {
+          return res.status(400).json({ error: "Invalid cursor: must be a JSON object" });
+        }
+
+        const { createdAt, id } = parsed;
+
+        if (!createdAt || !id) {
+          return res.status(400).json({ error: "Invalid cursor: missing createdAt or id" });
+        }
+
+        const dateVal = new Date(createdAt);
+        if (isNaN(dateVal.getTime())) {
+          return res.status(400).json({ error: "Invalid cursor: invalid createdAt timestamp" });
+        }
+
+        const idVal = parseInt(id, 10);
+        if (isNaN(idVal)) {
+          return res.status(400).json({ error: "Invalid cursor: invalid id value" });
+        }
+
+        // Filter products older than our cursor position
+        where.OR = [
+          { createdAt: { lt: dateVal } },
+          { createdAt: dateVal, id: { lt: idVal } },
+        ];
+      } catch (err) {
+        return res.status(400).json({ error: "Invalid cursor: failed to parse cursor token" });
+      }
     }
 
     //Sort by newest createdAt first
