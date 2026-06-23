@@ -5,7 +5,7 @@ import productsRouter from './routes/products.js';
 
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3001;
 
 
 app.use(express.json());
@@ -22,6 +22,6 @@ app.get('/health', (req, res) => {
 });
 
 
-app.listen(PORT, () => {
+app.listen(PORT || 3001, () => {
   console.log(`Server is running on port ${PORT}`);
 });
