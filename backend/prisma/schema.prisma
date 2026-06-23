@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id         Int      @id @default(autoincrement())
+  name       String
+  category   String
+  price      Float
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // This composite index covers filtering by category, ordering by date, and tiebreaking by id.
+  @@index([category, createdAt(sort: Desc), id(sort: Desc)])
+  @@map("products")
+}
